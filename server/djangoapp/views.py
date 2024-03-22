@@ -111,17 +111,34 @@ def get_dealer_details(request, dealer_id):
 
 # Create a `get_dealer_details` view to render the dealer details
 def get_dealer_reviews(request, dealer_id):
-    # if dealer id has been provided
-    if(dealer_id):
-        endpoint = "/fetchReviews/dealer/"+str(dealer_id)
-        reviews = get_request(endpoint)
-        for review_detail in reviews:
-            response = analyze_review_sentiments(review_detail['review'])
-            print(response)
-            review_detail['sentiment'] = response['sentiment']
-        return JsonResponse({"status":200,"reviews":reviews})
-    else:
-        return JsonResponse({"status":400,"message":"Bad Request"})
+    try:
+        # Check if dealer id has been provided
+        if dealer_id:
+            endpoint = "/fetchReviews/dealer/" + str(dealer_id)
+            
+            # Make the request to fetch reviews
+            reviews = get_request(endpoint)
+            
+            # Check if reviews were successfully retrieved
+            if reviews:
+                # Analyze sentiments for each review
+                for review_detail in reviews:
+                    print("Sentiment analysis error", review_detail['review'])
+                    response = analyze_review_sentiments(review_detail['review'])
+                    logger.info("Sentiment analysis response: %s", response)
+                    review_detail['sentiment'] = response['sentiment']
+                
+                # Return JSON response with reviews and status 200
+                return JsonResponse({"status": 200, "reviews": reviews})
+            else:
+                logger.warning("No reviews found for dealer with id %s", dealer_id)
+                return JsonResponse({"status": 404, "message": "No reviews found"})
+        else:
+            logger.error("No dealer id provided")
+            return JsonResponse({"status": 400, "message": "Bad Request"})
+    except Exception as e:
+        logger.exception("An error occurred while fetching dealer reviews: %s", e)
+        return JsonResponse({"status": 500, "message": "Internal Server Error"})
 
 # Create a `add_review` view to submit a review
 def add_review(request):

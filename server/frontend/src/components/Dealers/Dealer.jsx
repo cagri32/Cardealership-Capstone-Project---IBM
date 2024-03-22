@@ -49,7 +49,8 @@ const Dealer = () => {
                 throw new Error(`Failed to fetch reviews (${res.status})`);
             }
             const retobj = await res.json();
-            console.log("Reviews response:", retobj);
+            console.log("Reviews response plain:", res);
+            console.log("Reviews response json:", retobj);
             if (retobj.status === 200) {
                 if (retobj.reviews.length > 0) {
                     setReviews(retobj.reviews);
